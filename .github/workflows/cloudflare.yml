@@ -1,0 +1,27 @@
+name: Deploy to Cloudflare Pages
+
+# 只有在 repo 設好 CLOUDFLARE_API_TOKEN 與 CLOUDFLARE_ACCOUNT_ID 兩個 secret 後才會真正跑。
+# 若改用 Cloudflare 後台的 Git 連動（Workers & Pages → Connect to Git），
+# 就不需要這個檔案，直接刪掉即可，否則同一次 push 會部署兩次。
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy public --project-name=baseball-scorebook --branch=main

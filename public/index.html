@@ -1,0 +1,1115 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="寫給小學四年級的棒球統計課：從為什麼棒球天生適合統計，講到 OPS、wOBA、wRC+ 與 Statcast 進階數據，全部配上 2026 年 MLB 真實數據。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="棒球記分本">
+<meta property="og:description" content="寫給小學四年級的棒球統計課：OPS、wOBA、wRC+ 與 Statcast，配 2026 年 MLB 真實數據。">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BE%3C/text%3E%3C/svg%3E">
+<title>棒球記分本</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700;900&family=Oswald:wght@400;500;600&display=swap">
+
+<style>
+/* ═══ 记分本 (第1–2章) 与 记分板 (第3章) 两种视觉语汇 ═══ */
+
+:root{
+  --paper:      #F5F3ED;
+  --paper-2:    #FFFDF8;
+  --rule:       #DBD6C9;
+  --rule-2:     #B6AF9D;
+  --ink:        #17243B;
+  --graphite:   #5A6474;
+  --stitch:     #B81E28;
+  --clay:       #984D2A;
+  --grass:      #2C6549;
+  --hl:         #F2E6C6;
+  --grid:       rgba(23,36,59,.055);
+  --rule-v:     rgba(23,36,59,.10);
+  --row-hover:  rgba(23,36,59,.045);
+
+  /* 记分板：两种主题都维持深色——球场记分板本来就是深的 */
+  --board:      #0C1219;
+  --board-2:    #141D27;
+  --board-3:    #1C2734;
+  --board-rule: #27343F;
+  --board-ink:  #EFF3F7;
+  --board-dim:  #94A5B6;
+  --bulb:       #FFB020;
+  --bulb-dim:   #6E5320;
+  --board-red:  #FF8172;
+  --board-green:#63D2A0;
+
+  /* 全頁共用同一個欄寬，內文與表格左右完全切齊 */
+  --measure: 43rem;   /* 中文約 40 字一行 */
+  --mid: 43rem;
+  --wide: 64rem;      /* 版面外框 */
+  --r: 7px;
+
+  --sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --serif:"Noto Serif SC", "Songti SC", "SimSun", Georgia, serif;
+  --data: "Oswald", "Noto Sans SC", system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:    #11151B;
+    --paper-2:  #1A202A;
+    --rule:     #2B323C;
+    --rule-2:   #454E5C;
+    --ink:      #E9E7E1;
+    --graphite: #9BA4B1;
+    --stitch:   #FF8172;
+    --clay:     #E4915F;
+    --grass:    #63C795;
+    --hl:       #2A2820;
+    --grid:     rgba(233,231,225,.045);
+    --rule-v:   rgba(233,231,225,.085);
+    --row-hover:rgba(233,231,225,.05);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:    #11151B;
+  --paper-2:  #1A202A;
+  --rule:     #2B323C;
+  --rule-2:   #454E5C;
+  --ink:      #E9E7E1;
+  --graphite: #9BA4B1;
+  --stitch:   #FF8172;
+  --clay:     #E4915F;
+  --grass:    #63C795;
+  --hl:       #2A2820;
+  --grid:     rgba(233,231,225,.045);
+  --rule-v:   rgba(233,231,225,.085);
+  --row-hover:rgba(233,231,225,.05);
+}
+
+*{ box-sizing: border-box; }
+
+/* 记分本的方格纸：直接铺在 body 上，避免伪元素被背景盖住 */
+body{
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.85;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-attachment: fixed;
+}
+
+/* ─── 版面骨架 ─── */
+.wrap{ max-width: var(--wide); margin: 0 auto; padding: 0 22px; }
+.col{ max-width: var(--measure); margin-left: auto; margin-right: auto; }
+
+section{ padding: 64px 0; }
+section + section{ border-top: 1px solid var(--rule); }
+
+h1, h2, h3, h4{ text-wrap: balance; margin: 0; }
+
+/* ─── 开场 ─── */
+.hero{ padding: 76px 0 60px; }
+.hero .stamp{
+  font-family: var(--data); font-size: 12px; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--graphite);
+  display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+}
+.hero .stamp b{ color: var(--stitch); font-weight: 600; }
+h1{
+  font-family: var(--serif); font-weight: 900;
+  font-size: clamp(2.5rem, 7.5vw, 4.4rem);
+  line-height: 1.12; letter-spacing: -.01em;
+  margin: 20px 0 0;
+}
+h1 em{ font-style: normal; color: var(--stitch); }
+.hero .lede{
+  font-size: 1.22rem; line-height: 1.8; color: var(--graphite);
+  max-width: 38rem; margin-top: 22px;
+}
+.hero .lede strong{ color: var(--ink); font-weight: 500; }
+
+
+/* 缝线：整页唯一一次的红色横饰 */
+.seam{
+  height: 14px; margin: 34px 0 0; max-width: 38rem;
+  background-image: repeating-linear-gradient(
+    72deg, var(--stitch) 0 2px, transparent 2px 11px);
+  opacity: .85;
+}
+
+/* ─── 章节抬头（像记分本上方那条栏位列） ─── */
+.chap{ margin-bottom: 40px; }
+.chap .eyebrow{
+  font-family: var(--data); font-size: 12.5px; letter-spacing: .2em;
+  color: var(--graphite); text-transform: uppercase;
+  border-bottom: 2px solid var(--ink); padding-bottom: 8px;
+  display: flex; justify-content: space-between; gap: 16px;
+}
+.chap h2{
+  font-family: var(--serif); font-weight: 900;
+  font-size: clamp(1.75rem, 4.2vw, 2.5rem); line-height: 1.3;
+  margin-top: 18px;
+}
+.chap p{ color: var(--graphite); margin: 12px 0 0; }
+
+h3{
+  font-family: var(--serif); font-weight: 700;
+  font-size: 1.42rem; line-height: 1.45; margin: 52px 0 10px;
+}
+h3:first-of-type{ margin-top: 0; }
+h4{
+  font-family: var(--data); font-weight: 600; font-size: 13px;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--graphite);
+  margin: 0 0 10px;
+}
+p{ margin: 16px 0; }
+strong{ font-weight: 700; }
+.mark{ background: var(--hl); padding: 0 .22em; border-radius: 2px; }
+
+/* ─── 第一章的六個理由：六則並列的短說明，不是表格 ─── */
+.reasons{
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  column-gap: 40px; row-gap: 42px;
+  max-width: var(--measure); margin: 46px auto 6px;
+}
+.reason .tick{
+  height: 9px; width: 30px; margin-bottom: 15px;
+  background-image: repeating-linear-gradient(
+    72deg, var(--stitch) 0 2px, transparent 2px 9px);
+  opacity: .85;
+}
+.reason h5{
+  font-family: var(--serif); font-weight: 700; font-size: 1.13rem;
+  line-height: 1.55; margin: 0 0 10px;
+}
+.reason p{
+  margin: 0; font-size: .95rem; line-height: 1.8; color: var(--graphite);
+}
+@media (max-width: 560px){
+  .reasons{ grid-template-columns: 1fr; row-gap: 34px; margin-top: 38px; }
+}
+
+/* ─── 图 ─── */
+figure{ margin: 34px 0; }
+figure svg{ width: 100%; height: auto; display: block; }
+figcaption{
+  font-size: .9rem; line-height: 1.7; color: var(--graphite);
+  margin-top: 14px; padding-left: 14px; border-left: 2px solid var(--rule-2);
+}
+
+/* ─── 对照卡（阿劳兹 vs 施瓦伯） ─── */
+.versus{
+  display: grid; gap: 1px;
+  max-width: var(--mid); margin: 32px auto;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  background: var(--rule-2); border: 1px solid var(--rule-2);
+  border-radius: var(--r); overflow: hidden;
+}
+.vs-card{ background: var(--paper-2); padding: 24px 22px 26px; }
+.vs-card .who{ font-family: var(--serif); font-weight: 700; font-size: 1.2rem; }
+.vs-card .team{
+  font-family: var(--data); font-size: 12px; letter-spacing: .14em;
+  color: var(--graphite); text-transform: uppercase; margin-top: 2px;
+}
+.vs-line{
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 12px; padding: 9px 0; border-bottom: 1px dotted var(--rule-2);
+  font-size: .95rem;
+}
+.vs-line:last-child{ border-bottom: 0; }
+.vs-line span{ color: var(--graphite); }
+.vs-line b{
+  font-family: var(--data); font-weight: 500; font-size: 1.22rem;
+  font-variant-numeric: tabular-nums; color: var(--ink);
+}
+.vs-line b.lead{ color: var(--stitch); font-weight: 600; }
+.vs-note{
+  margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--rule);
+  font-size: .92rem; line-height: 1.7; color: var(--graphite);
+}
+
+/* ─── 表格：記分本的欄位格 ─── */
+.scroll{
+  overflow-x: auto;
+  max-width: var(--mid); margin: 32px auto;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r);
+  background: var(--paper-2);
+  -webkit-overflow-scrolling: touch;
+}
+/* 只有兩欄的小表（wOBA 配分表）跟著內文寬就好 */
+.scroll.col{ max-width: var(--measure); }
+table{
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  font-variant-numeric: tabular-nums; font-size: .95rem;
+}
+
+/* 標題條：像記分本頁首那一行 */
+caption{
+  text-align: left; font-family: var(--data);
+  font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--graphite);
+  padding: 13px 16px 12px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule-2);
+  border-radius: calc(var(--r) - 1px) calc(var(--r) - 1px) 0 0;
+}
+
+th, td{
+  padding: 10px 14px; text-align: right; white-space: nowrap;
+  border-bottom: 1px solid var(--rule);
+  border-left: 1px solid var(--rule-v);
+}
+th:first-child, td:first-child{ text-align: left; border-left: 0; }
+tbody tr:last-child td{ border-bottom: 0; }
+tbody tr:last-child td:first-child{ border-bottom-left-radius: calc(var(--r) - 1px); }
+tbody tr:last-child td:last-child{ border-bottom-right-radius: calc(var(--r) - 1px); }
+
+thead tr{ background: var(--paper); }
+th{
+  background: inherit;
+  font-family: var(--data); font-weight: 500; font-size: 11.5px;
+  letter-spacing: .12em; color: var(--graphite); text-transform: uppercase;
+  border-bottom: 2px solid var(--ink);
+  padding-top: 12px; padding-bottom: 11px;
+}
+
+tbody tr{ background: var(--paper-2); }
+tbody tr:hover{ background: var(--row-hover); }
+
+/* 手機橫捲時，名次與球員名固定在左側 */
+.rk, .nm{ position: sticky; background: inherit; z-index: 1; }
+.rk{ left: 0; width: 56px; }
+.nm{ left: 56px; }
+.nm:first-child{ left: 0; }
+
+.rk{
+  font-family: var(--data); color: var(--graphite);
+  text-align: center !important; font-size: .98rem;
+}
+/* 身分欄（名次／球員／隊）靠左，數字欄靠右 */
+.nm{ font-weight: 500; text-align: left; }
+.tm{
+  text-align: left;
+  font-family: var(--data); font-size: 11px; letter-spacing: .12em;
+  color: var(--graphite); text-transform: uppercase;
+}
+.big{
+  font-family: var(--data); font-size: 1.18rem; font-weight: 500;
+  line-height: 1.35;
+}
+
+/* 第一名：一枚紅色號碼牌 */
+tbody tr.top{ background: var(--hl); }
+tr.top .nm{ font-weight: 700; }
+tr.top .big{ color: var(--stitch); font-weight: 600; }
+tr.top .rk{ background: var(--stitch); color: var(--paper-2); font-weight: 600; }
+
+/* 對照行：不屬於排行榜，用虛線隔開 */
+tr.foil td{ color: var(--graphite); border-top: 1px dashed var(--rule-2); }
+tr.foil .nm{ font-style: italic; }
+tr.foil .big{ color: var(--graphite); }
+
+/* ═══════════ 第三章：记分板 ═══════════ */
+.board{
+  background: var(--board); color: var(--board-ink);
+  border-top: 0 !important;
+  padding: 70px 0 76px;
+  position: relative;
+}
+.board::before{
+  content:""; position: absolute; inset: 0 0 auto; height: 5px;
+  background-image: repeating-linear-gradient(
+    to right, var(--bulb) 0 7px, transparent 7px 21px);
+  opacity: .55;
+}
+.board .chap .eyebrow{ color: var(--bulb); border-bottom-color: var(--board-rule); }
+.board .chap h2, .board h3{ color: var(--board-ink); }
+.board .chap p, .board p{ color: var(--board-dim); }
+.board p strong{ color: var(--board-ink); }
+.board h4{ color: var(--bulb); }
+.board .mark{ background: var(--bulb-dim); color: var(--board-ink); }
+.board figcaption{ color: var(--board-dim); border-left-color: var(--board-rule); }
+.board .scroll{ border-color: var(--board-rule); background: var(--board); }
+.board caption{
+  color: var(--bulb); background: var(--board-2);
+  border-bottom-color: var(--board-rule);
+}
+.board thead tr{ background: var(--board-2); }
+.board th{
+  color: var(--board-dim);
+  border-bottom: 2px solid var(--bulb);
+  border-left-color: rgba(239,243,247,.09);
+}
+.board td{
+  color: var(--board-ink);
+  border-bottom-color: var(--board-rule);
+  border-left-color: rgba(239,243,247,.09);
+}
+.board th:first-child, .board td:first-child{ border-left: 0; }
+.board tbody tr{ background: var(--board); }
+.board tbody tr:hover{ background: var(--board-2); }
+.board .rk, .board .tm{ color: var(--board-dim); }
+.board tbody tr.top{ background: var(--board-2); }
+.board tr.top .big{ color: var(--bulb); }
+.board tr.top .rk{ background: var(--bulb); color: var(--board); }
+.board tr.foil td{ color: var(--board-dim); border-top-color: var(--board-rule); }
+.board tr.foil .big{ color: var(--board-dim); }
+
+/* 记分板上的量条（只用在「从 0 开始才有意义」的比率上） */
+.barcell{ width: 34%; min-width: 120px; }
+.bar{
+  display: block; height: 9px; background: var(--board-3);
+  position: relative; border-radius: 1px;
+}
+.bar i{
+  position: absolute; inset: 0 auto 0 0; width: calc(var(--v) * 100%);
+  background: var(--bulb); opacity: .55; border-radius: 1px;
+}
+tr.top .bar i{ opacity: 1; }
+
+.deftable{
+  background: var(--board-2); border: 1px solid var(--board-rule);
+  border-radius: var(--r);
+  padding: 22px 24px; margin: 30px auto;
+}
+.deftable h4{ margin-bottom: 14px; }
+.deftable dl{ margin: 0; display: grid; }
+.deftable dl > div{ padding: 14px 0; border-top: 1px solid var(--board-rule); }
+.deftable dl > div:first-child{ padding-top: 0; border-top: 0; }
+.deftable dl > div:last-child{ padding-bottom: 0; }
+.deftable dt{
+  font-family: var(--data); font-size: 1.2rem; color: var(--bulb);
+  font-variant-numeric: tabular-nums; letter-spacing: .02em;
+}
+.deftable dd{ margin: 4px 0 0; color: var(--board-dim); font-size: .95rem; line-height: 1.7; }
+
+/* ─── 大谷球员卡 ─── */
+.cardwrap{ padding: 70px 0 80px; }
+.card{
+  max-width: var(--mid); margin: 0 auto;
+  background: var(--board); color: var(--board-ink);
+  border: 1px solid var(--board-rule);
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 24px 60px rgba(6,10,16,.28);
+}
+.card-top{
+  padding: 26px 28px 24px; border-bottom: 1px solid var(--board-rule);
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 20px; flex-wrap: wrap;
+  background:
+    repeating-linear-gradient(to right, var(--bulb) 0 7px, transparent 7px 21px)
+    top left / 100% 4px no-repeat,
+    var(--board-2);
+}
+.card-top .no{
+  font-family: var(--data); font-size: 3.4rem; line-height: .9;
+  color: var(--bulb); font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.card-top .nmx{ font-family: var(--serif); font-weight: 900; font-size: 2rem; line-height: 1.2; }
+.card-top .sub{
+  font-family: var(--data); font-size: 12.5px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--board-dim); margin-top: 6px;
+}
+.card-body{ padding: 26px 28px 30px; }
+.card-body h4{ color: var(--bulb); margin-top: 26px; }
+.card-body h4:first-child{ margin-top: 0; }
+
+.slash{
+  font-family: var(--data); font-size: clamp(1.7rem, 6vw, 2.5rem);
+  font-variant-numeric: tabular-nums; letter-spacing: .01em; margin: 4px 0 2px;
+}
+.slash s{ text-decoration: none; color: var(--board-dim); padding: 0 .12em; }
+.slashlab{
+  font-family: var(--data); font-size: 11.5px; letter-spacing: .16em;
+  color: var(--board-dim); text-transform: uppercase;
+}
+.grid4{
+  display: grid; gap: 1px; margin: 14px 0 0;
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+  background: var(--board-rule); border: 1px solid var(--board-rule);
+  border-radius: 5px; overflow: hidden;
+}
+.tile{ background: var(--board-2); padding: 14px 14px 16px; }
+.tile .k{
+  font-family: var(--data); font-size: 11px; letter-spacing: .14em;
+  color: var(--board-dim); text-transform: uppercase;
+}
+.tile .v{
+  font-family: var(--data); font-size: 1.6rem; line-height: 1.25;
+  font-variant-numeric: tabular-nums; margin-top: 3px;
+}
+.tile.hot .v{ color: var(--bulb); }
+
+/* Savant 式百分位滑轨 */
+.pct{ display: grid; gap: 13px; margin-top: 14px; }
+.pctrow{ display: grid; grid-template-columns: 9.5rem 1fr 3.2rem; gap: 12px; align-items: center; }
+.pctrow .lab{ font-size: .9rem; color: var(--board-dim); }
+.pctrow .lab b{ color: var(--board-ink); font-weight: 500; font-family: var(--data); }
+.track{
+  position: relative; height: 7px; background: var(--board-3); border-radius: 4px;
+}
+.track i{
+  position: absolute; top: 50%; width: 17px; height: 17px; border-radius: 50%;
+  transform: translate(-50%, -50%); left: calc(var(--p) * 1%);
+  background: var(--bulb); border: 2px solid var(--board);
+}
+.track i.cool{ background: var(--board-dim); }
+.pctrow .pv{
+  font-family: var(--data); font-size: 1.05rem; text-align: right;
+  font-variant-numeric: tabular-nums; color: var(--bulb);
+}
+.pctrow .pv.cool{ color: var(--board-dim); }
+.pctnote{ font-size: .85rem; color: var(--board-dim); margin-top: 14px; line-height: 1.7; }
+
+.verdict{
+  margin-top: 26px; padding: 20px 22px;
+  background: var(--board-2); border-left: 3px solid var(--bulb);
+}
+.verdict p{ margin: 0; color: var(--board-dim); }
+.verdict p + p{ margin-top: 12px; }
+.verdict strong{ color: var(--board-ink); }
+
+/* ─── 结尾 ─── */
+.close blockquote{
+  margin: 26px 0 0; padding: 0 0 0 20px; border-left: 3px solid var(--stitch);
+  font-family: var(--serif); font-size: 1.22rem; line-height: 1.8;
+}
+.close blockquote p{ margin: 0 0 10px; color: var(--ink); }
+.close blockquote p:last-child{ margin-bottom: 0; }
+
+footer{
+  border-top: 1px solid var(--rule); padding: 34px 0 56px;
+  font-size: .85rem; line-height: 1.8; color: var(--graphite);
+}
+footer a{ color: var(--graphite); text-underline-offset: 3px; }
+footer a:hover{ color: var(--stitch); }
+:focus-visible{ outline: 2px solid var(--stitch); outline-offset: 3px; }
+
+@media (max-width: 560px){
+  body{ font-size: 16px; }
+  section{ padding: 50px 0; }
+  .pctrow{ grid-template-columns: 7.4rem 1fr 2.8rem; gap: 9px; }
+  .pctrow .lab{ font-size: .82rem; }
+}
+@media (prefers-reduced-motion: reduce){
+  *{ animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ 开场 ═══════════════ -->
+<header class="hero wrap">
+  <div class="col">
+    <div class="stamp">
+      <span>2026 賽季</span><span>·</span><span>截至 9 月 13 日</span><span>·</span><b>MLB</b>
+    </div>
+    <h1>棒球是為<em>統計</em><br>量身打造的運動</h1>
+    <p class="lede">
+      每一球、每一次上場打擊，棒球都<strong>留下一筆記錄</strong>，而且已經留了一百五十年。
+      這一頁要講：為什麼這件事這麼特別，以及現在的人用哪些新方法，
+      看出「誰真的強」和「誰只是運氣好」。
+    </p>
+    <div class="seam" aria-hidden="true"></div>
+  </div>
+
+</header>
+
+<!-- ═══════════════ 第一章 ═══════════════ -->
+<section class="wrap">
+  <div class="col chap">
+    <div class="eyebrow"><span>第一章</span><span>一場比賽 = 一份資料</span></div>
+    <h2>為什麼偏偏是棒球？</h2>
+    <p>足球、籃球也有比分，可是只有棒球，整場比賽的結構剛好長得跟一張表格一模一樣。原因有六個。</p>
+  </div>
+
+  <div class="reasons">
+    <div class="reason">
+      <div class="tick" aria-hidden="true"></div>
+      <h5>事情是一件一件發生的</h5>
+      <p>籃球場上五個人一直跑、球一直傳，進球了也很難說是誰的功勞。棒球不是——投手投完、打者揮完，結果就定了，然後換下一個人。每一次打擊，天生就是表格裡的一行。</p>
+    </div>
+    <div class="reason">
+      <div class="tick" aria-hidden="true"></div>
+      <h5>那是一場單挑</h5>
+      <p>投手對打者，中間沒有隊友插手。所以打得好就是他自己厲害，打不好也不能怪別人。<span class="mark">功勞跑不掉，責任也躲不掉。</span></p>
+    </div>
+    <div class="reason">
+      <div class="tick" aria-hidden="true"></div>
+      <h5>次數多到騙不了人</h5>
+      <p>棒球沒有時間限制，一季要打 162 場，一個主力球員一年要站上打擊區 600 多次。次數這麼多，運氣好和運氣壞會互相抵消，剩下的就是真本事。</p>
+    </div>
+    <div class="reason">
+      <div class="tick" aria-hidden="true"></div>
+      <h5>場上狀況只有 24 種</h5>
+      <p>壘上有沒有人（8 種）× 現在幾人出局（3 種）＝ 24 種，就這樣，沒別的了。可以全部列出來的東西，就可以全部算出來。</p>
+    </div>
+    <div class="reason">
+      <div class="tick" aria-hidden="true"></div>
+      <h5>記錄了一百五十年沒斷過</h5>
+      <p>從 1860 年代就開始一場一場記，格式幾乎沒變過。現在更誇張——球場裡的雷達連球轉多快都記下來。很少有事情留下這麼長又這麼整齊的記錄。</p>
+    </div>
+    <div class="reason">
+      <div class="tick" aria-hidden="true"></div>
+      <h5>運氣可以被扣掉</h5>
+      <p>正因為次數夠多、每件事又分得夠開，統計可以把「運氣」單獨挑出來丟掉，只留下實力。這是這一頁後半段的重點。</p>
+    </div>
+  </div>
+
+  <div class="col">
+    <figure>
+      <svg viewBox="0 0 580 300" role="img" aria-label="八種壘包狀態乘以三種出局數，構成棒球比賽全部二十四種可能的場面">
+        <!-- 栏位标题 -->
+        <text x="24" y="30" fill="currentColor" font-family="Oswald, sans-serif" font-size="12.5" letter-spacing="2.4" opacity=".62">壘包狀態</text>
+
+        <!-- 8 个壘包状态的小标 -->
+        <g fill="currentColor" font-family="Oswald, sans-serif" font-size="12" text-anchor="middle" opacity=".62">
+          <text x="100" y="76">空壘</text>
+          <text x="162" y="76">一</text>
+          <text x="224" y="76">二</text>
+          <text x="286" y="76">三</text>
+          <text x="348" y="76">一二</text>
+          <text x="410" y="76">一三</text>
+          <text x="472" y="76">二三</text>
+          <text x="534" y="76">滿壘</text>
+        </g>
+        <line x1="60" y1="86" x2="556" y2="86" stroke="currentColor" stroke-width="1" opacity=".28"/>
+
+        <!-- 行标：出局数 -->
+        <g fill="currentColor" font-family="Oswald, sans-serif" font-size="12.5" text-anchor="end" opacity=".62">
+          <text x="62" y="115">0 出局</text>
+          <text x="62" y="185">1 出局</text>
+          <text x="62" y="255">2 出局</text>
+        </g>
+
+        <!-- 24 个菱形。空心=无人，实心（土色）=有人 -->
+        <g fill="none" stroke="currentColor" stroke-width="1.4" opacity=".55">
+          <path d="M100 126 L116 110 L100 94 L84 110 Z"/>
+          <path d="M162 126 L178 110 L162 94 L146 110 Z"/>
+          <path d="M224 126 L240 110 L224 94 L208 110 Z"/>
+          <path d="M286 126 L302 110 L286 94 L270 110 Z"/>
+          <path d="M348 126 L364 110 L348 94 L332 110 Z"/>
+          <path d="M410 126 L426 110 L410 94 L394 110 Z"/>
+          <path d="M472 126 L488 110 L472 94 L456 110 Z"/>
+          <path d="M534 126 L550 110 L534 94 L518 110 Z"/>
+
+          <path d="M100 196 L116 180 L100 164 L84 180 Z"/>
+          <path d="M162 196 L178 180 L162 164 L146 180 Z"/>
+          <path d="M224 196 L240 180 L224 164 L208 180 Z"/>
+          <path d="M286 196 L302 180 L286 164 L270 180 Z"/>
+          <path d="M348 196 L364 180 L348 164 L332 180 Z"/>
+          <path d="M410 196 L426 180 L410 164 L394 180 Z"/>
+          <path d="M472 196 L488 180 L472 164 L456 180 Z"/>
+          <path d="M534 196 L550 180 L534 164 L518 180 Z"/>
+
+          <path d="M100 266 L116 250 L100 234 L84 250 Z"/>
+          <path d="M162 266 L178 250 L162 234 L146 250 Z"/>
+          <path d="M224 266 L240 250 L224 234 L208 250 Z"/>
+          <path d="M286 266 L302 250 L286 234 L270 250 Z"/>
+          <path d="M348 266 L364 250 L348 234 L332 250 Z"/>
+          <path d="M410 266 L426 250 L410 234 L394 250 Z"/>
+          <path d="M472 266 L488 250 L472 234 L456 250 Z"/>
+          <path d="M534 266 L550 250 L534 234 L518 250 Z"/>
+        </g>
+
+        <!-- 占用的壘包：一壘在右、二壘在上、三壘在左 -->
+        <g fill="#984D2A" stroke="none">
+          <!-- 第 1 列 (0 出局) -->
+          <circle cx="178" cy="110" r="4"/>
+          <circle cx="224" cy="94"  r="4"/>
+          <circle cx="270" cy="110" r="4"/>
+          <circle cx="364" cy="110" r="4"/><circle cx="348" cy="94" r="4"/>
+          <circle cx="426" cy="110" r="4"/><circle cx="394" cy="110" r="4"/>
+          <circle cx="472" cy="94"  r="4"/><circle cx="456" cy="110" r="4"/>
+          <circle cx="550" cy="110" r="4"/><circle cx="534" cy="94" r="4"/><circle cx="518" cy="110" r="4"/>
+          <!-- 第 2 列 (1 出局) -->
+          <circle cx="178" cy="180" r="4"/>
+          <circle cx="224" cy="164" r="4"/>
+          <circle cx="270" cy="180" r="4"/>
+          <circle cx="364" cy="180" r="4"/><circle cx="348" cy="164" r="4"/>
+          <circle cx="426" cy="180" r="4"/><circle cx="394" cy="180" r="4"/>
+          <circle cx="472" cy="164" r="4"/><circle cx="456" cy="180" r="4"/>
+          <circle cx="550" cy="180" r="4"/><circle cx="534" cy="164" r="4"/><circle cx="518" cy="180" r="4"/>
+          <!-- 第 3 列 (2 出局) -->
+          <circle cx="178" cy="250" r="4"/>
+          <circle cx="224" cy="234" r="4"/>
+          <circle cx="270" cy="250" r="4"/>
+          <circle cx="364" cy="250" r="4"/><circle cx="348" cy="234" r="4"/>
+          <circle cx="426" cy="250" r="4"/><circle cx="394" cy="250" r="4"/>
+          <circle cx="472" cy="234" r="4"/><circle cx="456" cy="250" r="4"/>
+          <circle cx="550" cy="250" r="4"/><circle cx="534" cy="234" r="4"/><circle cx="518" cy="250" r="4"/>
+        </g>
+
+        <text x="24" y="294" fill="#B81E28" font-family="Oswald, sans-serif" font-size="13" letter-spacing="1.6">8 × 3 = 24</text>
+      </svg>
+      <figcaption>
+        棒球場上所有可能的場面，一張圖就畫得完：八種壘包狀態，乘上三種出局數。
+        因為狀況可以全部列出來，就可以去翻一百年的記錄，算出每一種場面「平均能得幾分」——
+        後面的進階數據，全部是從這件事長出來的。
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ═══════════════ 第二章 ═══════════════ -->
+<section class="wrap">
+  <div class="col chap">
+    <div class="eyebrow"><span>第二章</span><span>紙筆時代的數據</span></div>
+    <h2>打擊率會騙人</h2>
+    <p>打擊率 ＝ 安打 ÷ 打擊次數。看起來很合理，其實有兩個大毛病。</p>
+  </div>
+
+  <div class="col">
+    <p><strong>毛病一：保送不算數。</strong>投手怕你，四壞球把你保送上壘。你明明已經站上壘包了，打擊率卻當作「這次不存在」。</p>
+    <p><strong>毛病二：一壘安打和全壘打，同樣重。</strong>一個只前進一格，一個直接得分回家。怎麼可能算一樣？</p>
+    <p>這不是理論問題。今年的大聯盟就有一組完美的對照組——</p>
+  </div>
+
+  <div class="versus">
+    <div class="vs-card">
+      <div class="who">Luis Arraez</div>
+      <div class="team">馬林魚 · 一壘手</div>
+      <div class="vs-line"><span>打擊率</span><b class="lead">.318</b></div>
+      <div class="vs-line"><span>全壘打</span><b>5</b></div>
+      <div class="vs-line"><span>OPS</span><b>.775</b></div>
+      <div class="vs-line"><span>wRC+</span><b>112</b></div>
+      <div class="vs-note">打擊率<strong>全大聯盟第一名</strong>。可是他打出去的球軟軟的，一整季只有 7 次「完美擊球」。</div>
+    </div>
+    <div class="vs-card">
+      <div class="who">Kyle Schwarber</div>
+      <div class="team">費城人 · 指定打擊</div>
+      <div class="vs-line"><span>打擊率</span><b>.236</b></div>
+      <div class="vs-line"><span>全壘打</span><b class="lead">44</b></div>
+      <div class="vs-line"><span>OPS</span><b class="lead">.868</b></div>
+      <div class="vs-line"><span>wRC+</span><b class="lead">131</b></div>
+      <div class="vs-note">打擊率低到只排中後段，全壘打卻是<strong>全大聯盟第一</strong>。十次只中兩次多，但一中就是一分。</div>
+    </div>
+  </div>
+
+  <div class="col">
+    <p>只看打擊率，你會選 Arraez。<span class="mark">但真正幫球隊得分的是 Schwarber</span>，而且差很多。所以大家改看下面三個數字。</p>
+
+    <h3>OPS：把「上壘」和「打遠」加起來</h3>
+    <p>OPS 同時看兩件事：<strong>上壘率</strong>（不管用什麼方法，你有沒有站上壘包？安打、保送、被球 K 到都算）加上 <strong>長打率</strong>（你打出去平均能跑幾個壘包？）。</p>
+    <p>.700 算普通，.800 算很好，.900 是明星，破 1.000 就是怪物。今年全大聯盟只有一個人破 1.000。</p>
+  </div>
+
+  <div class="scroll">
+    <table>
+      <caption>2026 OPS 排行榜 · 前 10 名（TOT ＝ 該季待過兩支球隊）</caption>
+      <thead>
+        <tr><th class="rk">#</th><th class="nm">球員</th><th class="tm">隊</th><th>OPS</th><th>打擊率</th><th>上壘率</th><th>長打率</th><th>HR</th></tr>
+      </thead>
+      <tbody>
+        <tr class="top"><td class="rk">1</td><td class="nm">Yordan Alvarez</td><td class="tm">HOU</td><td class="big">1.017</td><td>.310</td><td>.427</td><td>.590</td><td>38</td></tr>
+        <tr><td class="rk">2</td><td class="nm">Pete Crow-Armstrong</td><td class="tm">CHC</td><td class="big">.940</td><td>.279</td><td>.373</td><td>.566</td><td>41</td></tr>
+        <tr><td class="rk">3</td><td class="nm">James Wood</td><td class="tm">WSH</td><td class="big">.916</td><td>.266</td><td>.393</td><td>.523</td><td>30</td></tr>
+        <tr><td class="rk">4</td><td class="nm">大谷翔平</td><td class="tm">LAD</td><td class="big">.902</td><td>.277</td><td>.380</td><td>.522</td><td>30</td></tr>
+        <tr><td class="rk">5</td><td class="nm">Willson Contreras</td><td class="tm">BOS</td><td class="big">.900</td><td>.274</td><td>.384</td><td>.516</td><td>26</td></tr>
+        <tr><td class="rk">6</td><td class="nm">Junior Caminero</td><td class="tm">TBR</td><td class="big">.897</td><td>.279</td><td>.365</td><td>.532</td><td>40</td></tr>
+        <tr><td class="rk">7</td><td class="nm">Jake Bauers</td><td class="tm">MIL</td><td class="big">.888</td><td>.269</td><td>.395</td><td>.493</td><td>25</td></tr>
+        <tr><td class="rk">8</td><td class="nm">Bryce Harper</td><td class="tm">PHI</td><td class="big">.885</td><td>.271</td><td>.386</td><td>.498</td><td>28</td></tr>
+        <tr><td class="rk">9</td><td class="nm">Luis García Jr.</td><td class="tm">TOT</td><td class="big">.876</td><td>.291</td><td>.322</td><td>.554</td><td>30</td></tr>
+        <tr><td class="rk">10</td><td class="nm">Ben Rice</td><td class="tm">NYY</td><td class="big">.876</td><td>.259</td><td>.354</td><td>.523</td><td>37</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+    <h3>wOBA：每一種上壘方式，配分不一樣</h3>
+    <p>OPS 還是有點粗糙——它把兩個數字硬加起來，有點隨便。所以有人去翻了幾十年的記錄，算出<strong>每一種結果平均能幫球隊多得幾分</strong>，然後照貢獻給分：</p>
+  </div>
+
+  <div class="scroll col">
+    <table>
+      <caption>wOBA 的配分表（近似值）</caption>
+      <thead><tr><th>你做到了什麼</th><th>值多少</th></tr></thead>
+      <tbody>
+        <tr><td class="nm">保送</td><td class="big">0.69</td></tr>
+        <tr><td class="nm">一壘安打</td><td class="big">0.89</td></tr>
+        <tr><td class="nm">二壘安打</td><td class="big">1.27</td></tr>
+        <tr><td class="nm">三壘安打</td><td class="big">1.62</td></tr>
+        <tr class="top"><td class="nm">全壘打</td><td class="big">2.10</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+    <p>就像考試的配分：選擇題 2 分、作文 20 分，不能通通算一題。這樣算出來的成績就叫 <strong>wOBA</strong>，它長得跟上壘率很像——<strong>.320 是普通，.400 以上就是超級巨星</strong>。</p>
+  </div>
+
+  <div class="scroll">
+    <table>
+      <caption>2026 wOBA · 主要打者</caption>
+      <thead><tr><th class="rk">#</th><th class="nm">球員</th><th class="tm">隊</th><th>wOBA</th><th>打擊率</th></tr></thead>
+      <tbody>
+        <tr class="top"><td class="rk">1</td><td class="nm">Yordan Alvarez</td><td class="tm">HOU</td><td class="big">.422</td><td>.311</td></tr>
+        <tr><td class="rk">2</td><td class="nm">Pete Crow-Armstrong</td><td class="tm">CHC</td><td class="big">.401</td><td>.281</td></tr>
+        <tr><td class="rk">3</td><td class="nm">James Wood</td><td class="tm">WSH</td><td class="big">.392</td><td>.266</td></tr>
+        <tr><td class="rk">4</td><td class="nm">Juan Soto</td><td class="tm">NYM</td><td class="big">.390</td><td>.274</td></tr>
+        <tr><td class="rk">5</td><td class="nm">大谷翔平</td><td class="tm">LAD</td><td class="big">.381</td><td>.277</td></tr>
+        <tr><td class="rk">5</td><td class="nm">Bryce Harper</td><td class="tm">PHI</td><td class="big">.381</td><td>.271</td></tr>
+        <tr><td class="rk">7</td><td class="nm">Kyle Schwarber</td><td class="tm">PHI</td><td class="big">.373</td><td>.238</td></tr>
+        <tr><td class="rk">8</td><td class="nm">Pete Alonso</td><td class="tm">BAL</td><td class="big">.368</td><td>.266</td></tr>
+        <tr class="foil"><td class="rk">—</td><td class="nm">Luis Arraez（打擊率第一那位）</td><td class="tm">MIA</td><td class="big">.337</td><td>.318</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+    <p>看最後一行：<span class="mark">打擊率第一名的人，wOBA 只排中上而已。</span>配分制度一上，真相就出來了。</p>
+
+    <h3>wRC+：連球場大小都扣掉</h3>
+    <p>還有一件很不公平的事——有些球場小，隨便打都能飛出去；有些球場大，打很遠也只是被接殺。那在小球場打球的人，是不是白白占便宜？對，很占便宜。</p>
+    <p><strong>wRC+</strong> 就把球場大小、那一年投手強不強，通通扣掉，然後規定：<strong>聯盟平均 ＝ 100 分</strong>。所以超好懂——130 就是比平均強 30%，80 就是比平均差 20%。</p>
+  </div>
+
+  <div class="scroll">
+    <table>
+      <caption>2026 wRC+ 排行榜 · 400 打席以上</caption>
+      <thead><tr><th class="rk">#</th><th class="nm">球員</th><th class="tm">隊</th><th>wRC+</th><th>比平均</th></tr></thead>
+      <tbody>
+        <tr class="top"><td class="rk">1</td><td class="nm">Yordan Alvarez</td><td class="tm">HOU</td><td class="big">176</td><td>強 76%</td></tr>
+        <tr><td class="rk">2</td><td class="nm">Pete Crow-Armstrong</td><td class="tm">CHC</td><td class="big">156</td><td>強 56%</td></tr>
+        <tr><td class="rk">3</td><td class="nm">Juan Soto</td><td class="tm">NYM</td><td class="big">152</td><td>強 52%</td></tr>
+        <tr><td class="rk">4</td><td class="nm">Willson Contreras</td><td class="tm">BOS</td><td class="big">150</td><td>強 50%</td></tr>
+        <tr><td class="rk">5</td><td class="nm">Jake Bauers</td><td class="tm">MIL</td><td class="big">147</td><td>強 47%</td></tr>
+        <tr><td class="rk">6</td><td class="nm">James Wood</td><td class="tm">WSH</td><td class="big">146</td><td>強 46%</td></tr>
+        <tr><td class="rk">7</td><td class="nm">Junior Caminero</td><td class="tm">TBR</td><td class="big">145</td><td>強 45%</td></tr>
+        <tr><td class="rk">8</td><td class="nm">Ben Rice</td><td class="tm">NYY</td><td class="big">143</td><td>強 43%</td></tr>
+        <tr><td class="rk">9</td><td class="nm">Randy Arozarena</td><td class="tm">SEA</td><td class="big">143</td><td>強 43%</td></tr>
+        <tr><td class="rk">10</td><td class="nm">Ty France</td><td class="tm">SDP</td><td class="big">142</td><td>強 42%</td></tr>
+        <tr><td class="rk">11</td><td class="nm">大谷翔平</td><td class="tm">LAD</td><td class="big">142</td><td>強 42%</td></tr>
+        <tr><td class="rk">12</td><td class="nm">Pete Alonso</td><td class="tm">BAL</td><td class="big">142</td><td>強 42%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+    <p><strong>Aaron Judge 今年去哪了？</strong>他受傷了，只打了 63 場（打擊率 .246、17 轟），打席數不夠，所以排行榜上找不到他。</p>
+  </div>
+</section>
+
+<!-- ═══════════════ 第三章：记分板 ═══════════════ -->
+<section class="board">
+  <div class="wrap">
+    <div class="col chap">
+      <div class="eyebrow"><span>第三章</span><span>2015 — 雷達時代</span></div>
+      <h2>Statcast：<br>把每一球都量一遍</h2>
+      <p>2015 年開始，每一座大聯盟球場都裝了雷達和高速攝影機。現在不只知道「打中了沒有」，連球飛多快、飛多高、轉多快，全部都知道。</p>
+    </div>
+
+    <div class="col">
+      <p>這件事為什麼重要？因為<strong>結果會騙人，但球飛出去的速度不會</strong>。一支軟弱的滾地球剛好穿過防守，記錄上寫的還是「安打」；一記轟得又快又準的平飛球被野手跳起來接走，記錄上寫的是「出局」。雷達看得到這個差別，記分本看不到。</p>
+
+      <h3>擊球初速：球從球棒彈出去的速度</h3>
+      <p>聯盟平均大約 89 英里（時速 143 公里）。超過 95 就叫「紮實的一擊」，超過 110 就是超級大棒。</p>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <caption>2026 平均擊球初速 · 前 8 名（英里／小時）</caption>
+        <thead><tr><th class="rk">#</th><th class="nm">球員</th><th class="tm">隊</th><th>平均初速</th><th>最快的一擊</th></tr></thead>
+        <tbody>
+          <tr class="top"><td class="rk">1</td><td class="nm">James Wood</td><td class="tm">WSH</td><td class="big">95.4</td><td>116.3</td></tr>
+          <tr><td class="rk">2</td><td class="nm">Oneil Cruz</td><td class="tm">PIT</td><td class="big">94.9</td><td>119.0</td></tr>
+          <tr><td class="rk">3</td><td class="nm">Elly De La Cruz</td><td class="tm">CIN</td><td class="big">94.5</td><td>116.6</td></tr>
+          <tr><td class="rk">4</td><td class="nm">Yordan Alvarez</td><td class="tm">HOU</td><td class="big">94.2</td><td>118.5</td></tr>
+          <tr><td class="rk">5</td><td class="nm">Pete Alonso</td><td class="tm">BAL</td><td class="big">94.0</td><td>114.6</td></tr>
+          <tr><td class="rk">6</td><td class="nm">村上宗隆</td><td class="tm">—</td><td class="big">93.8</td><td>114.1</td></tr>
+          <tr><td class="rk">7</td><td class="nm">Nick Kurtz</td><td class="tm">ATH</td><td class="big">93.4</td><td>115.9</td></tr>
+          <tr><td class="rk">8</td><td class="nm">大谷翔平</td><td class="tm">LAD</td><td class="big">93.2</td><td>114.6</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col">
+      <p>Oneil Cruz 那記 <strong>119 英里</strong>，換算過來是<strong>時速 191 公里</strong>——比高鐵慢一點，比任何一輛在路上跑的車都快。</p>
+
+      <h3>強勁擊球率：你是「常常」打得紮實，還是偶爾？</h3>
+      <p>打出 95 英里以上的球，占了幾成？這個數字比「最快的一擊」誠實得多——最快值只要一整季矇中一次就有了，強勁擊球率矇不來。</p>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <caption>2026 強勁擊球率 · 前 6 名</caption>
+        <thead><tr><th class="rk">#</th><th class="nm">球員</th><th class="tm">隊</th><th>強勁擊球率</th><th class="barcell">佔全部擊球的比例</th></tr></thead>
+        <tbody>
+          <tr class="top"><td class="rk">1</td><td class="nm">James Wood</td><td class="tm">WSH</td><td class="big">58.6%</td><td class="barcell"><span class="bar" style="--v:.586"><i></i></span></td></tr>
+          <tr><td class="rk">2</td><td class="nm">Nick Kurtz</td><td class="tm">ATH</td><td class="big">57.3%</td><td class="barcell"><span class="bar" style="--v:.573"><i></i></span></td></tr>
+          <tr><td class="rk">3</td><td class="nm">村上宗隆</td><td class="tm">—</td><td class="big">56.9%</td><td class="barcell"><span class="bar" style="--v:.569"><i></i></span></td></tr>
+          <tr><td class="rk">4</td><td class="nm">Pete Alonso</td><td class="tm">BAL</td><td class="big">56.6%</td><td class="barcell"><span class="bar" style="--v:.566"><i></i></span></td></tr>
+          <tr><td class="rk">5</td><td class="nm">Kyle Stowers</td><td class="tm">MIA</td><td class="big">56.2%</td><td class="barcell"><span class="bar" style="--v:.562"><i></i></span></td></tr>
+          <tr><td class="rk">6</td><td class="nm">Oneil Cruz</td><td class="tm">PIT</td><td class="big">55.0%</td><td class="barcell"><span class="bar" style="--v:.550"><i></i></span></td></tr>
+          <tr class="foil"><td class="rk">15</td><td class="nm">大谷翔平</td><td class="tm">LAD</td><td class="big">51.5%</td><td class="barcell"><span class="bar" style="--v:.515"><i></i></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col">
+      <p>James Wood 每打 10 球就有快 6 球是重擊，全大聯盟最猛。</p>
+
+      <h3>仰角：這個數字推翻了教了一百年的話</h3>
+      <p>球飛出去的<strong>角度</strong>。以前教練說「不要打高飛球，壓低打，球壓低比較不會被接到」。雷達裝上去之後，資料說的是反話——</p>
+    </div>
+
+    <div class="col">
+      <figure>
+        <svg viewBox="0 0 620 300" role="img" aria-label="從本壘板畫出的仰角分區圖：零到八度是滾地球，八到三十二度是甜蜜點，其中二十六到三十度是全壘打黃金角，三十二到五十度是高飛球，五十度以上是沖天炮">
+          <!-- 地面 -->
+          <line x1="90" y1="262" x2="590" y2="262" stroke="currentColor" stroke-width="1" stroke-dasharray="3 4" opacity=".4"/>
+          <text x="596" y="266" fill="currentColor" font-family="Oswald, sans-serif" font-size="11.5" text-anchor="end" opacity=".5">地面 0°</text>
+
+          <!-- 五个角度区 -->
+          <path d="M90 262 L340 262 A250 250 0 0 0 337.6 227.2 Z" fill="currentColor" opacity=".13"/>
+          <path d="M90 262 L337.6 227.2 A250 250 0 0 0 302.0 129.5 Z" fill="#63D2A0" opacity=".22"/>
+          <path d="M90 262 L314.7 152.4 A250 250 0 0 0 306.5 137.0 Z" fill="#FFB020" opacity=".92"/>
+          <path d="M90 262 L302.0 129.5 A250 250 0 0 0 250.7 70.5 Z" fill="currentColor" opacity=".13"/>
+          <path d="M90 262 L250.7 70.5 A250 250 0 0 0 154.7 20.5 Z" fill="currentColor" opacity=".07"/>
+
+          <!-- 分界线 -->
+          <g stroke="currentColor" stroke-width="1" opacity=".45">
+            <line x1="90" y1="262" x2="337.6" y2="227.2"/>
+            <line x1="90" y1="262" x2="302.0" y2="129.5"/>
+            <line x1="90" y1="262" x2="250.7" y2="70.5"/>
+            <line x1="90" y1="262" x2="154.7" y2="20.5"/>
+          </g>
+
+          <!-- 本垒板 -->
+          <path d="M78 262 L102 262 L102 253 L90 246 L78 253 Z" fill="currentColor"/>
+          <text x="90" y="284" fill="currentColor" font-family="Oswald, sans-serif" font-size="11.5" text-anchor="middle" opacity=".55">本壘板</text>
+
+          <!-- 标签 -->
+          <g font-family="Oswald, sans-serif" font-size="13.5" fill="currentColor">
+            <text x="357" y="248" opacity=".62">滾地球　0°–8°</text>
+            <text x="346" y="178" fill="#63D2A0">甜蜜點　8°–32°</text>
+            <text x="330" y="130" fill="#FFB020">黃金角　26°–30°</text>
+            <text x="286" y="78" opacity=".62">高飛球　32°–50°</text>
+            <text x="208" y="26" opacity=".5">沖天炮　50°以上</text>
+          </g>
+        </svg>
+        <figcaption>
+          球從球棒彈出去的角度，決定了它會變成什麼。壓在地上跑（0°–8°）幾乎都是出局；
+          抬到 <strong>26°–30°</strong> 那一小片，才是全壘打真正出現的地方。
+          很多球員為了搬進這一片，把整個揮棒動作重新練過——這就是有名的「飛球革命」。
+        </figcaption>
+      </figure>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <caption>2026 平均仰角 · 兩個極端</caption>
+        <thead><tr><th class="nm">球員</th><th class="tm">隊</th><th>平均仰角</th><th>結果</th></tr></thead>
+        <tbody>
+          <tr class="top"><td class="nm">Rhys Hoskins</td><td class="tm">MIL</td><td class="big">26.6°</td><td>整季專心打全壘打</td></tr>
+          <tr><td class="nm">Cedric Mullins</td><td class="tm">—</td><td class="big">26.0°</td><td>把球全部抬起來</td></tr>
+          <tr><td class="nm">Cal Raleigh</td><td class="tm">SEA</td><td class="big">24.6°</td><td>打擊率只有 .182，照樣一直開轟</td></tr>
+          <tr class="foil"><td class="nm">Chandler Simpson</td><td class="tm">TBR</td><td class="big">1.5°</td><td>整季 0 次完美擊球，但打擊率 .306</td></tr>
+          <tr class="foil"><td class="nm">Justin Crawford</td><td class="tm">PHI</td><td class="big">1.2°</td><td>球幾乎貼著地跑</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col">
+      <p><strong>Chandler Simpson 是個很好玩的例外。</strong>他平均仰角只有 1.5 度，球幾乎都貼著地面滾，整季<strong>一次完美擊球都沒有</strong>——可是打擊率有 .306。為什麼？<span class="mark">因為他跑超快</span>，滾地球還沒被接到他就上壘了。這種打者很稀有，也很有趣，但他的 wOBA 只有 .306，對球隊的幫助其實很有限。</p>
+
+      <h3>Barrel：又快又準的那一擊</h3>
+      <p>速度夠快 <strong>而且</strong> 角度剛好，兩個同時達成，才算一個 <strong>Barrel（完美擊球）</strong>。</p>
+    </div>
+
+    <div class="col deftable">
+      <h4>Barrel 的門檻</h4>
+      <dl>
+        <div><dt>≥ 98 英里</dt><dd>初速至少要到這個數字，慢一點都不算。</dd></div>
+        <div><dt>26° – 30°</dt><dd>在 98 英里這個速度，角度必須落在這一小片裡。球打得越快，可以接受的角度範圍就越寬。</dd></div>
+        <div><dt>打擊率 .800 以上</dt><dd>符合條件的球，實際打出來的成績。長打率超過 2.000——幾乎打出去就是好事發生。</dd></div>
+      </dl>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <caption>2026 Barrel 排行榜 · 每 100 次打擊打出幾個</caption>
+        <thead><tr><th class="rk">#</th><th class="nm">球員</th><th class="tm">隊</th><th>每100打席</th><th>整季總數</th><th class="barcell">比例</th></tr></thead>
+        <tbody>
+          <tr class="top"><td class="rk">1</td><td class="nm">James Wood</td><td class="tm">WSH</td><td class="big">11.1</td><td>63</td><td class="barcell"><span class="bar" style="--v:.925"><i></i></span></td></tr>
+          <tr><td class="rk">2</td><td class="nm">Byron Buxton</td><td class="tm">MIN</td><td class="big">10.5</td><td>43</td><td class="barcell"><span class="bar" style="--v:.875"><i></i></span></td></tr>
+          <tr><td class="rk">3</td><td class="nm">Yordan Alvarez</td><td class="tm">HOU</td><td class="big">10.4</td><td>66</td><td class="barcell"><span class="bar" style="--v:.867"><i></i></span></td></tr>
+          <tr><td class="rk">4</td><td class="nm">Shea Langeliers</td><td class="tm">ATH</td><td class="big">10.1</td><td>42</td><td class="barcell"><span class="bar" style="--v:.842"><i></i></span></td></tr>
+          <tr><td class="rk">5</td><td class="nm">Luis García Jr.</td><td class="tm">TOT</td><td class="big">9.9</td><td>50</td><td class="barcell"><span class="bar" style="--v:.825"><i></i></span></td></tr>
+          <tr><td class="rk">6</td><td class="nm">Juan Soto</td><td class="tm">NYM</td><td class="big">9.7</td><td>40</td><td class="barcell"><span class="bar" style="--v:.808"><i></i></span></td></tr>
+          <tr><td class="rk">7</td><td class="nm">Elly De La Cruz</td><td class="tm">CIN</td><td class="big">9.6</td><td>55</td><td class="barcell"><span class="bar" style="--v:.800"><i></i></span></td></tr>
+          <tr><td class="rk">7</td><td class="nm">大谷翔平</td><td class="tm">LAD</td><td class="big">9.6</td><td>57</td><td class="barcell"><span class="bar" style="--v:.800"><i></i></span></td></tr>
+          <tr><td class="rk">7</td><td class="nm">Corey Seager</td><td class="tm">TEX</td><td class="big">9.6</td><td>36</td><td class="barcell"><span class="bar" style="--v:.800"><i></i></span></td></tr>
+          <tr><td class="rk">10</td><td class="nm">Matt Olson</td><td class="tm">ATL</td><td class="big">9.5</td><td>61</td><td class="barcell"><span class="bar" style="--v:.792"><i></i></span></td></tr>
+          <tr class="foil"><td class="rk">—</td><td class="nm">Luis Arraez（打擊率第一那位）</td><td class="tm">MIA</td><td class="big">1.2</td><td>7</td><td class="barcell"><span class="bar" style="--v:.100"><i></i></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col">
+      <p>最後一行值得停一下：<span class="mark">打擊率第一名的人，整季只有 7 次完美擊球；Barrel 王有 63 次。</span>差了九倍。</p>
+
+      <h3>xwOBA：抓運氣的照妖鏡</h3>
+      <p>這是最酷的一個。電腦會看你<strong>每一球的速度和角度</strong>，然後去翻歷史資料問：「過去打成這個樣子的球，有幾成變成安打？」</p>
+      <p>把一整季的球都這樣算過一遍，就得到 <strong>xwOBA（你「應該」要有的成績）</strong>。再跟真實成績一比——</p>
+      <p><strong>實際比預期低</strong>，代表他其實打得很好，只是運氣爛，之後會回升。<strong>實際比預期高</strong>，代表他是運氣好，之後會掉下來。</p>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <caption>2026 最倒楣的打者 · 打得好但沒結果</caption>
+        <thead><tr><th class="nm">球員</th><th class="tm">隊</th><th>實際 wOBA</th><th>應該要有</th><th>差多少</th></tr></thead>
+        <tbody>
+          <tr class="top"><td class="nm">Bobby Witt Jr.</td><td class="tm">KCR</td><td>.349</td><td class="big">.385</td><td class="big">−.036</td></tr>
+          <tr><td class="nm">Patrick Bailey</td><td class="tm">SFG</td><td>.271</td><td class="big">.309</td><td class="big">−.038</td></tr>
+          <tr><td class="nm">J.T. Realmuto</td><td class="tm">PHI</td><td>.282</td><td class="big">.319</td><td class="big">−.037</td></tr>
+          <tr><td class="nm">Julio Rodríguez</td><td class="tm">SEA</td><td>.304</td><td class="big">.335</td><td class="big">−.031</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col">
+      <p><strong>Bobby Witt Jr. 今年被罵得很慘。</strong>可是雷達說：他打出去的球又快又準（最快 117.2 英里），只是剛好一直被守備員接到。他沒有變弱，他只是很衰。</p>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <caption>2026 運氣最好的打者 · 成績比實力好</caption>
+        <thead><tr><th class="nm">球員</th><th class="tm">隊</th><th>實際 wOBA</th><th>其實只有</th><th>多賺了</th></tr></thead>
+        <tbody>
+          <tr class="top"><td class="nm">Ceddanne Rafaela</td><td class="tm">BOS</td><td>.330</td><td class="big">.282</td><td class="big">+.048</td></tr>
+          <tr><td class="nm">Mickey Moniak</td><td class="tm">COL</td><td>.327</td><td class="big">.279</td><td class="big">+.048</td></tr>
+          <tr><td class="nm">Andrew Vaughn</td><td class="tm">CHW</td><td>.377</td><td class="big">.334</td><td class="big">+.043</td></tr>
+          <tr><td class="nm">Chandler Simpson</td><td class="tm">TBR</td><td>.306</td><td class="big">.264</td><td class="big">+.042</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col">
+      <p>球隊做交易的時候<strong>超級依賴這兩張表</strong>：買那些被運氣冤枉的人，賣掉那些運氣快用完的人。《點球成金》那部電影講的就是這件事——一支很窮的球隊，靠著看懂數字，把「其實很強但被大家嫌棄」的便宜球員撿回來，結果贏了一堆有錢的球隊。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 大谷球员卡 ═══════════════ -->
+<section class="cardwrap wrap">
+  <div class="col chap">
+    <div class="eyebrow"><span>附錄</span><span>把全部數字用在同一個人身上</span></div>
+    <h2>大谷翔平 · 2026</h2>
+    <p>前面講的每一個數字，放在同一張卡片上會長什麼樣子。</p>
+  </div>
+
+  <article class="card">
+    <div class="card-top">
+      <div>
+        <div class="nmx">大谷翔平</div>
+        <div class="sub">Shohei Ohtani · 道奇 · 指定打擊／投手</div>
+      </div>
+      <div class="no">17</div>
+    </div>
+
+    <div class="card-body">
+      <h4>基本成績 · 130 場</h4>
+      <div class="slash">.277<s>/</s>.380<s>/</s>.522</div>
+      <div class="slashlab">打擊率 / 上壘率 / 長打率　·　OPS .902</div>
+
+      <div class="grid4">
+        <div class="tile"><div class="k">全壘打</div><div class="v">30</div></div>
+        <div class="tile"><div class="k">打點</div><div class="v">80</div></div>
+        <div class="tile"><div class="k">得分</div><div class="v">89</div></div>
+        <div class="tile"><div class="k">盜壘</div><div class="v">11</div></div>
+        <div class="tile"><div class="k">保送</div><div class="v">80</div></div>
+        <div class="tile"><div class="k">投手防禦率</div><div class="v">1.79</div></div>
+      </div>
+
+      <h4>進階數據</h4>
+      <div class="grid4">
+        <div class="tile hot"><div class="k">wRC+</div><div class="v">142</div></div>
+        <div class="tile hot"><div class="k">wOBA</div><div class="v">.381</div></div>
+        <div class="tile hot"><div class="k">xwOBA</div><div class="v">.399</div></div>
+        <div class="tile"><div class="k">xBA</div><div class="v">.288</div></div>
+        <div class="tile"><div class="k">xSLG</div><div class="v">.554</div></div>
+        <div class="tile"><div class="k">Barrel</div><div class="v">57</div></div>
+      </div>
+
+      <h4>Statcast · 在 242 位合格打者中的位置</h4>
+      <div class="pct">
+        <div class="pctrow">
+          <div class="lab">平均擊球初速<br><b>93.2</b></div>
+          <div class="track"><i style="--p:97"></i></div>
+          <div class="pv">97</div>
+        </div>
+        <div class="pctrow">
+          <div class="lab">Barrel 比例<br><b>9.6%</b></div>
+          <div class="track"><i style="--p:97"></i></div>
+          <div class="pv">97</div>
+        </div>
+        <div class="pctrow">
+          <div class="lab">強勁擊球率<br><b>51.5%</b></div>
+          <div class="track"><i style="--p:94"></i></div>
+          <div class="pv">94</div>
+        </div>
+        <div class="pctrow">
+          <div class="lab">最快的一擊<br><b>114.6</b></div>
+          <div class="track"><i style="--p:88"></i></div>
+          <div class="pv">88</div>
+        </div>
+        <div class="pctrow">
+          <div class="lab">甜蜜點比例<br><b>38.3%</b></div>
+          <div class="track"><i style="--p:88"></i></div>
+          <div class="pv">88</div>
+        </div>
+        <div class="pctrow">
+          <div class="lab">平均仰角<br><b>12.2°</b></div>
+          <div class="track"><i class="cool" style="--p:31"></i></div>
+          <div class="pv cool">31</div>
+        </div>
+      </div>
+      <p class="pctnote">數字越大越前面。100 代表全聯盟第一，50 代表正中間。仰角沒有「越高越好」，所以那一條不算強弱——它只是說明大谷打的球比多數人平一點。</p>
+
+      <div class="verdict">
+        <p><strong>怎麼讀這張卡？</strong>大谷把球打得又快又紮實（初速和 Barrel 都排在前 3%），可是他的平均仰角只排在中後段——他打出去的球比別人平一些，所以有一部分力氣沒有變成全壘打。</p>
+        <p>最值得看的是這一組：他實際打出 wOBA <strong>.381</strong>，但電腦算他「應該」要有 <strong>.399</strong>。<span class="mark" style="background:var(--bulb-dim);color:var(--board-ink)">也就是說，他今年運氣還算差的——他其實比帳面上更強。</span></p>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- ═══════════════ 收尾 ═══════════════ -->
+<section class="close wrap">
+  <div class="col">
+    <h3>一句話記住</h3>
+    <p>打擊的進階數據，其實只在做兩件事：<strong>給對的東西打對的分數</strong>（OPS、wOBA、wRC+），還有<strong>把運氣和實力分開</strong>（擊球初速、Barrel、xwOBA）。</p>
+    <blockquote>
+      <p>以前看棒球問的是：他今天有沒有打出安打？</p>
+      <p>現在看棒球問的是：<strong>他打得紮不紮實？</strong></p>
+      <p>因為安打會騙人，但球飛出去的速度不會。</p>
+    </blockquote>
+  </div>
+</section>
+
+<footer class="wrap">
+  <div class="col">
+    <p>
+      資料為 2026 球季，截至 2026 年 9 月 13 日。<br>
+      擊球初速、仰角、Barrel、xwOBA 取自
+      <a href="https://baseballsavant.mlb.com/leaderboard/statcast">Baseball Savant</a>
+      的原始資料檔（242 位合格打者，百分位為自行計算）；
+      OPS、wRC+、傳統成績取自
+      <a href="https://www.statmuse.com/mlb">StatMuse</a>。
+      wOBA 配分表為近年通用的近似值。球員所屬球隊以資料來源標示為準。
+    </p>
+  </div>
+</footer>
+</body>
+</html>
