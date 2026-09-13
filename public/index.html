@@ -145,6 +145,23 @@ h1 em{ font-style: normal; color: var(--stitch); }
 .hero .lede strong{ color: var(--ink); font-weight: 500; }
 
 
+/* 開場照片 */
+.heroshot{ max-width: var(--measure); margin: 42px auto 0; }
+.heroshot img{
+  display: block; width: 100%; height: auto;
+  border-radius: var(--r);
+  border: 1px solid var(--rule-2);
+}
+.heroshot figcaption{
+  margin-top: 12px; padding-left: 0; border-left: 0;
+  font-size: .82rem; line-height: 1.7; color: var(--graphite);
+}
+.heroshot figcaption a{ color: inherit; text-underline-offset: 3px; }
+.heroshot figcaption a:hover{ color: var(--stitch); }
+@media (max-width: 560px){
+  .heroshot{ margin-top: 32px; }
+}
+
 /* 缝线：整页唯一一次的红色横饰 */
 .seam{
   height: 14px; margin: 34px 0 0; max-width: 38rem;
@@ -530,6 +547,15 @@ footer a:hover{ color: var(--stitch); }
     <div class="seam" aria-hidden="true"></div>
   </div>
 
+  <figure class="heroshot">
+    <img src="og-ohtani.jpg" width="1200" height="628" fetchpriority="high"
+         alt="大谷翔平站上打擊區，高舉球棒等待投球">
+    <figcaption>
+      大谷翔平，2022 年 7 月 8 日於 Camden Yards。攝影
+      <a href="https://commons.wikimedia.org/wiki/File:Shohei_Ohtani_vs_Orioles_2022.jpg">Mogami Kariya</a>，
+      授權 <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a>，本站使用的版本經過裁切。
+    </figcaption>
+  </figure>
 </header>
 
 <!-- ═══════════════ 第一章 ═══════════════ -->
@@ -1117,11 +1143,8 @@ footer a:hover{ color: var(--stitch); }
       wOBA 配分表為近年通用的近似值。球員所屬球隊以資料來源標示為準。
     </p>
     <p>
-      分享本頁時顯示的預覽圖為
-      <a href="https://commons.wikimedia.org/wiki/File:Shohei_Ohtani_vs_Orioles_2022.jpg">Shohei Ohtani vs Orioles 2022</a>，
-      攝影 Mogami Kariya，授權
-      <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a>。
-      本站使用的版本經過裁切，依授權條款同樣以 CC BY-SA 2.0 釋出。
+      開場照片的授權資訊見圖說；依 CC BY-SA 2.0 條款，本站使用的裁切版本同樣以
+      <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a> 釋出。
     </p>
   </div>
 </footer>
