@@ -46,3 +46,13 @@ npx serve public
 |---|---|
 | GitHub Pages | https://lachusi21.github.io/baseball-scorebook/ |
 | Cloudflare Pages | https://baseball-scorebook-5jz.pages.dev/ |
+
+## 手動部署到 Cloudflare（不需要 API token）
+
+本機已用 `wrangler login` 完成 OAuth 授權，直接跑：
+
+```bash
+npm run deploy
+```
+
+GitHub Pages 則是 push 到 `main` 就自動更新，不需要任何額外設定。

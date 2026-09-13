@@ -1,0 +1,10 @@
+{
+  "name": "baseball-scorebook",
+  "version": "1.0.0",
+  "private": true,
+  "description": "寫給小學四年級的棒球統計課",
+  "scripts": {
+    "dev": "npx serve public",
+    "deploy": "npx wrangler pages deploy public --project-name=baseball-scorebook --branch=main"
+  }
+}
