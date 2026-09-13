@@ -1,5 +1,8 @@
 # 棒球記分本
 
+[![Deploy to GitHub Pages](https://github.com/lachusi21/baseball-scorebook/actions/workflows/pages.yml/badge.svg)](https://github.com/lachusi21/baseball-scorebook/actions/workflows/pages.yml)
+[![Deploy to Cloudflare Pages](https://github.com/lachusi21/baseball-scorebook/actions/workflows/cloudflare.yml/badge.svg)](https://github.com/lachusi21/baseball-scorebook/actions/workflows/cloudflare.yml)
+
 一頁式靜態網站：寫給小學四年級學生看的棒球統計課。從「為什麼棒球天生適合統計」講到
 OPS、wOBA、wRC+ 與 Statcast 進階數據，全部配 2026 年 MLB 真實數據，最後附大谷翔平的球員卡。
 
