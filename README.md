@@ -63,5 +63,8 @@ GitHub Pages 則是 push 到 `main` 就自動更新，不需要任何額外設�
 ## 預覽圖授權
 
 `public/og-ohtani.jpg` 裁切自 Wikimedia Commons 的
-[Shohei Ohtani](https://commons.wikimedia.org/wiki/File:Shohei_Ohtani_(53836294794).jpg)，
-攝影 David from Washington, DC，授權 [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/)。
+[Shohei Ohtani vs Orioles 2022](https://commons.wikimedia.org/wiki/File:Shohei_Ohtani_vs_Orioles_2022.jpg)，
+攝影 Mogami Kariya，授權 [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)。
+
+由於原作採用姓名標示─相同方式分享授權，本 repo 內的裁切版本
+**同樣以 CC BY-SA 2.0 釋出**（此條款僅適用於該張圖片，不影響其餘程式碼）。
