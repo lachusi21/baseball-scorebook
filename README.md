@@ -39,3 +39,10 @@ npx serve public
 ## 授權
 
 程式碼可自由使用。數據為各資料來源所有。
+
+## 線上網址
+
+| 平台 | 網址 |
+|---|---|
+| GitHub Pages | https://lachusi21.github.io/baseball-scorebook/ |
+| Cloudflare Pages | https://baseball-scorebook-5jz.pages.dev/ |

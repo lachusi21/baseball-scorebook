@@ -1,8 +1,9 @@
 name: Deploy to Cloudflare Pages
 
-# 只有在 repo 設好 CLOUDFLARE_API_TOKEN 與 CLOUDFLARE_ACCOUNT_ID 兩個 secret 後才會真正跑。
-# 若改用 Cloudflare 後台的 Git 連動（Workers & Pages → Connect to Git），
-# 就不需要這個檔案，直接刪掉即可，否則同一次 push 會部署兩次。
+# 需要兩個 repo secret 才會真正部署：
+#   CLOUDFLARE_API_TOKEN   ← 需自行到 Cloudflare 建立（權限選 Cloudflare Pages: Edit）
+#   CLOUDFLARE_ACCOUNT_ID  ← 已設定
+# 缺 token 時本流程會「跳過」而不是失敗，避免每次 push 都出現紅叉。
 
 on:
   push:
@@ -19,7 +20,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check for Cloudflare credentials
+        id: check
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$TOKEN" ] && [ -n "$ACCOUNT" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::尚未設定 CLOUDFLARE_API_TOKEN，略過 Cloudflare 部署。"
+          fi
+
       - name: Publish to Cloudflare Pages
+        if: steps.check.outputs.ready == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
