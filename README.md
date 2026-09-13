@@ -62,7 +62,7 @@ GitHub Pages 則是 push 到 `main` 就自動更新，不需要任何額外設�
 
 ## 預覽圖授權
 
-`public/og-ohtani.jpg` 裁切自 Wikimedia Commons 的
+`public/ohtani-batting.jpg` 裁切自 Wikimedia Commons 的
 [Shohei Ohtani vs Orioles 2022](https://commons.wikimedia.org/wiki/File:Shohei_Ohtani_vs_Orioles_2022.jpg)，
 攝影 Mogami Kariya，授權 [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/)。
 
